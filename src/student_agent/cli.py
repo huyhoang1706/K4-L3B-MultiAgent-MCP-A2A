@@ -73,6 +73,20 @@ async def _run(root: Path, concurrency: int = 4, only: list[str] | None = None) 
         ]
         if failures:
             raise RuntimeError(f"{len(failures)} case(s) failed: " + "; ".join(failures[:5]))
+        # Schema-valid but evidence-free outputs hit the missing_required_evidence hard gate:
+        # fail loudly instead of producing a package that looks valid.
+        empty = [
+            case_id
+            for case_id in case_ids
+            if not json.loads((output_root / f"{case_id}.json").read_text(encoding="utf-8"))[
+                "evidence_refs"
+            ]
+        ]
+        if empty:
+            raise RuntimeError(
+                f"{len(empty)} case(s) have no evidence refs (MCP tool failures?), e.g. "
+                f"{empty[:5]}; do NOT submit this run"
+            )
 
 
 def parser() -> argparse.ArgumentParser:

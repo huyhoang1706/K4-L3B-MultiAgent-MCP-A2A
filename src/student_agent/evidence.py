@@ -152,6 +152,7 @@ class EvidenceLedger:
                 # Tool-level error (e.g. no refund lifecycle for this order) or contract
                 # violation: deterministic, so retrying would only waste audited calls.
                 reason = "tool_error" if isinstance(exc, RuntimeError) else "contract_violation"
+                logger.warning("%s %s %s: %s", self.case_id, tool, reason, exc)
                 self.failures.append(ToolFailure(actor, tool, reason, attempts))
                 return None
             except Exception as exc:  # noqa: BLE001 - never let one tool break the case
